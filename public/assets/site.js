@@ -47,17 +47,18 @@ const catalog = document.querySelector('[data-catalog]');
 if(catalog){
  const search=catalog.querySelector('[data-catalog-search]');
  const type=catalog.querySelector('[data-catalog-type]');
+ const domainFilter=catalog.querySelector('[data-catalog-domain]');
  const entries=[...catalog.querySelectorAll('[data-catalog-item]')];
- function readUrl(){const params=new URL(location.href).searchParams;search.value=params.get('q')||'';type.value=['task','resource','tool'].includes(params.get('type'))?params.get('type'):'all';filter(false);}
+ function readUrl(){const params=new URL(location.href).searchParams;search.value=params.get('q')||'';for(const [select,key] of [[type,'type'],[domainFilter,'domain']]){const value=params.get(key);select.value=[...select.options].some(option=>option.value===value)?value:'all';}filter(false);}
  function filter(write=true){
    const query=search.value.trim().toLocaleLowerCase();let count=0;
-   entries.forEach(entry=>{const match=(!query||entry.dataset.search.toLocaleLowerCase().includes(query))&&(type.value==='all'||entry.dataset.type===type.value);entry.hidden=!match;if(match)count++;});
-   catalog.querySelector('[data-catalog-count]').textContent=t(`${count} 项公开阅读与教学入口`,`${count} public reading and teaching ${count===1?'entry':'entries'}`);
+   entries.forEach(entry=>{const match=(!query||entry.dataset.search.toLocaleLowerCase().includes(query))&&(type.value==='all'||entry.dataset.type===type.value)&&(domainFilter.value==='all'||entry.dataset.domains.split(' ').includes(domainFilter.value));entry.hidden=!match;if(match)count++;});
+   catalog.querySelector('[data-catalog-count]').textContent=t(`${count} 项阅读、教学与社区入口`,`${count} reading, teaching and community ${count===1?'entry':'entries'}`);
    catalog.querySelector('[data-catalog-empty]').hidden=count>0;
-   if(write){const address=new URL(location.href);if(query)address.searchParams.set('q',search.value.trim());else address.searchParams.delete('q');if(type.value!=='all')address.searchParams.set('type',type.value);else address.searchParams.delete('type');history.replaceState(null,'',address);}
+   if(write){const address=new URL(location.href);if(query)address.searchParams.set('q',search.value.trim());else address.searchParams.delete('q');if(type.value!=='all')address.searchParams.set('type',type.value);else address.searchParams.delete('type');if(domainFilter.value!=='all')address.searchParams.set('domain',domainFilter.value);else address.searchParams.delete('domain');history.replaceState(null,'',address);}
  }
- search.addEventListener('input',()=>filter());type.addEventListener('change',()=>filter());
- catalog.querySelector('[data-clear-filters]').addEventListener('click',()=>{search.value='';type.value='all';filter();search.focus();});
+ search.addEventListener('input',()=>filter());type.addEventListener('change',()=>filter());domainFilter.addEventListener('change',()=>filter());
+ catalog.querySelector('[data-clear-filters]').addEventListener('click',()=>{search.value='';type.value='all';domainFilter.value='all';filter();search.focus();});
  window.addEventListener('popstate',readUrl);readUrl();
 }
 

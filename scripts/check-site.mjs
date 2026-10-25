@@ -2,12 +2,22 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {routes,locales} from '../src/content.mjs';
+import {routes,locales,resources,domains,resourceHref} from '../src/content.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const dist=path.join(root,'dist');
 const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(dir,e.name)):[path.join(dir,e.name)]);
 const pages=walk(dist).filter(f=>f.endsWith('.html'));
 const errors=[];let references=0;
+const resourceIds=new Set();
+for(const resource of resources){
+ if(resourceIds.has(resource.id))errors.push(`Duplicate resource: ${resource.id}`);
+ resourceIds.add(resource.id);
+ if(!['task','resource','tool','platform'].includes(resource.type))errors.push(`Unknown resource type: ${resource.id}`);
+ for(const id of resource.domainIds)if(!domains.some(domain=>domain.id===id))errors.push(`Unknown resource domain: ${resource.id}/${id}`);
+ if(resource.path&&!routes.includes(resource.path))errors.push(`Unknown resource route: ${resource.id}`);
+ if(!resource.path&&!resource.externalUrl)errors.push(`Resource needs a destination: ${resource.id}`);
+ if(resource.externalUrl){try{if(new URL(resource.externalUrl).protocol!=='https:')throw new Error();}catch{errors.push(`Invalid external resource URL: ${resource.id}`);}}
+}
 // Exact output inventory also catches stale or accidentally copied attachments.
 const relative=file=>path.relative(dist,file).split(path.sep).join('/');
 const expected=new Set(['index.html','404.html']);
@@ -37,11 +47,24 @@ for(const file of pages){
  if(/<script[^>]+src="https?:/.test(html))errors.push(`${relative}: unexpected external script`);
 }
 for(const language of locales)for(const route of routes)if(!fs.existsSync(path.join(dist,language,route,'index.html')))errors.push(`Missing ${language}/${route}`);
+for(const language of locales){
+ const catalog=fs.readFileSync(path.join(dist,language,'explore/index.html'),'utf8');
+ for(const resource of resources){
+  if(!catalog.includes(`data-resource-id="${resource.id}"`))errors.push(`Missing catalog resource: ${language}/${resource.id}`);
+  if(!catalog.includes(`href="${resourceHref(resource,language)}"`))errors.push(`Missing resource destination: ${language}/${resource.id}`);
+ }
+ const material=fs.readFileSync(path.join(dist,language,'domains/materials/index.html'),'utf8');
+ const scoped=material.match(/<div class="resource-links">([\s\S]*?)<\/div>/)?.[1]||'';
+ for(const resource of resources){
+  const present=scoped.includes(`href="${resourceHref(resource,language)}"`);
+  if(present!==resource.domainIds.includes('materials'))errors.push(`Material resource scope mismatch: ${language}/${resource.id}`);
+ }
+}
 const data=JSON.parse(fs.readFileSync(path.join(dist,'downloads/teaching-pair.json'),'utf8'));
 if(data.observations.length!==2||data.observations[0].target_index!==1||data.observations[1].target_index!==0)errors.push('Teaching reference mismatch');
 if(!data.notice.includes('Third-party public teaching records')||!data.notice.includes('does not represent SII Bench'))errors.push('Missing third-party teaching scope');
 if(!fs.readFileSync(path.join(dist,'downloads/DATA-NOTICE.md'),'utf8').includes('QM9S'))errors.push('Missing teaching source notice');
-for(const file of ['public/assets/site.js','src/views.mjs','scripts/dev.mjs'])execFileSync(process.execPath,['--check',file],{cwd:root,stdio:'inherit'});
+for(const file of ['public/assets/site.js','src/views.mjs','src/ecosystem.mjs','scripts/dev.mjs'])execFileSync(process.execPath,['--check',file],{cwd:root,stdio:'inherit'});
 const jsBytes=fs.statSync(path.join(dist,'assets/site.js')).size;
 if(jsBytes>102400)errors.push('Initial JS exceeds 100 KB budget');
 console.log(JSON.stringify({passed:errors.length===0,pages:pages.length,localizedPages:routes.length*locales.length,localReferences:references,initialJavaScriptBytes:jsBytes,errors},null,2));
