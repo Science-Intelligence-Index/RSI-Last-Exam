@@ -1,0 +1,35 @@
+{
+  "notice": "Third-party public teaching records for this browser walkthrough only. This display format does not represent SII Bench's core data design or evaluation protocol. No broad dataset redistribution grant is inferred.",
+  "masked_smiles": "[*:1](C#N)n1cnnc1",
+  "candidates": [
+    "N#CCn1cnnc1",
+    "N#CC(=O)n1cnnc1"
+  ],
+  "property": {
+    "name": "Dipole magnitude",
+    "units": "D",
+    "theory_level": "B3LYP/def-TZVP"
+  },
+  "observations": [
+    {
+      "value": 1.457241052220207,
+      "target_index": 1,
+      "input_url": "https://github.com/DUAL-Xiao/MolP2SBench/blob/1ede82bf68f634097b296b1937d66a9b04bbf269/data/dipole/correct.jsonl#L115",
+      "label_url": "https://github.com/DUAL-Xiao/MolP2SBench/blob/1ede82bf68f634097b296b1937d66a9b04bbf269/data/dipole/correct.labels.jsonl#L115"
+    },
+    {
+      "value": 5.3759039083425275,
+      "target_index": 0,
+      "input_url": "https://github.com/DUAL-Xiao/MolP2SBench/blob/1ede82bf68f634097b296b1937d66a9b04bbf269/data/dipole/counterfactual.jsonl#L223",
+      "label_url": "https://github.com/DUAL-Xiao/MolP2SBench/blob/1ede82bf68f634097b296b1937d66a9b04bbf269/data/dipole/counterfactual.labels.jsonl#L223"
+    }
+  ],
+  "provenance": {
+    "repository": "https://github.com/DUAL-Xiao/MolP2SBench",
+    "commit": "1ede82bf68f634097b296b1937d66a9b04bbf269",
+    "sourceOrigin": "Computed QM9S dipole vector norm; not a measured spectrum.",
+    "upstreamLicense": "MolP2SBench has no standalone LICENSE at the pinned snapshot. Underlying QM9S release version 3 lists CC BY 4.0 (checked 2026-10-11). This platform’s teaching adaptation is shared with project-lead authorization. Original source terms remain separate; this grants no blanket license to the full upstream benchmark.",
+    "underlyingDataUrl": "https://figshare.com/articles/dataset/QM9S_dataset/24235333",
+    "underlyingPaperDoi": "https://doi.org/10.1038/s43588-023-00550-y"
+  }
+}

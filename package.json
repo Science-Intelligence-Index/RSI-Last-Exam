@@ -1,0 +1,14 @@
+{
+  "name": "sii-main-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "SII public website: scientific problems, learning environments and contributions.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node src/build.mjs",
+    "dev": "node scripts/dev.mjs",
+    "preview": "node scripts/dev.mjs --no-watch",
+    "check": "node scripts/check-site.mjs"
+  }
+}
